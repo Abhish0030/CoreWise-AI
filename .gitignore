@@ -1,0 +1,41 @@
+# Operating system and temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Per-user Obsidian state; shared app/appearance/core-plugin/graph settings stay tracked
+.obsidian/workspace*.json
+.obsidian/cache/
+.obsidian/plugins/*/data.json
+.obsidian/plugins/obsidian-git/main.js
+.obsidian/plugins/obsidian-git/manifest.json
+.obsidian/plugins/obsidian-git/styles.css
+.trash/
+
+# Credentials and environment secrets (safe templates may be tracked)
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+.netrc
+.npmrc
+.aws/
+.ssh/
+
+# Local dependencies and caches
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc

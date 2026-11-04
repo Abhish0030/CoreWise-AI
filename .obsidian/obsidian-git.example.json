@@ -1,0 +1,18 @@
+{
+  "commitMessage": "docs: update notes {{date}}",
+  "autoCommitMessage": "docs: automatic backup {{date}}",
+  "commitDateFormat": "YYYY-MM-DD HH:mm:ss",
+  "autoSaveInterval": 10,
+  "autoPushInterval": 0,
+  "autoPullInterval": 0,
+  "autoPullOnBoot": true,
+  "disablePush": false,
+  "pullBeforePush": true,
+  "syncMethod": "merge",
+  "differentIntervalCommitAndPush": false,
+  "autoBackupAfterFileChange": false,
+  "showBranchStatusBar": true,
+  "showStatusBar": true,
+  "basePath": "",
+  "gitDir": ""
+}
