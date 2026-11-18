@@ -1,0 +1,213 @@
+[
+  {
+    "id": "schema.public",
+    "label": "Create schema \"public\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Create schema \"public\"",
+        "sql": "CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.Benchmark",
+    "label": "Create table \"Benchmark\"",
+    "summary": "Creates table \"Benchmark\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Benchmark"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Benchmark\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Benchmark\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"Benchmark\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Benchmark\"",
+        "sql": "CREATE TABLE \"public\".\"Benchmark\" (\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"device\" text NOT NULL,\n  \"durationMs\" float8 NOT NULL,\n  \"efficiency\" float8 NOT NULL,\n  \"gflops\" float8 NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"kind\" text NOT NULL,\n  \"matrixSize\" int4 NOT NULL,\n  \"threads\" int4 NOT NULL,\n  \"workload\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"Benchmark_device_check_c0989f8f\" CHECK (\"device\" IN ('cpu', 'gpu')),\n  CONSTRAINT \"Benchmark_kind_check_3c59211d\" CHECK (\"kind\" IN ('matmul', 'conv2d', 'attention', 'reduction', 'sort'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Benchmark\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"Benchmark\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"Benchmark\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.Prediction",
+    "label": "Create table \"Prediction\"",
+    "summary": "Creates table \"Prediction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Prediction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Prediction\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Prediction\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"Prediction\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Prediction\"",
+        "sql": "CREATE TABLE \"public\".\"Prediction\" (\n  \"confidence\" float8 NOT NULL,\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"kind\" text NOT NULL,\n  \"matrixSize\" int4 NOT NULL,\n  \"predictedDurationMs\" float8 NOT NULL,\n  \"reasoning\" text NOT NULL,\n  \"recommendedDevice\" text NOT NULL,\n  \"threads\" int4 NOT NULL,\n  \"workload\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"Prediction_kind_check_3c59211d\" CHECK (\"kind\" IN ('matmul', 'conv2d', 'attention', 'reduction', 'sort')),\n  CONSTRAINT \"Prediction_recommendedDevice_check_5d8dce6d\" CHECK (\"recommendedDevice\" IN ('cpu', 'gpu'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Prediction\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"Prediction\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"Prediction\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "index.Benchmark.Benchmark_kind_device_idx_97b947b8",
+    "label": "Create index \"Benchmark_kind_device_idx_97b947b8\" on \"Benchmark\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Benchmark_kind_device_idx_97b947b8",
+        "table": "Benchmark"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Benchmark_kind_device_idx_97b947b8\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Benchmark_kind_device_idx_97b947b8\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Benchmark_kind_device_idx_97b947b8\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Benchmark_kind_device_idx_97b947b8\"",
+        "sql": "CREATE INDEX \"Benchmark_kind_device_idx_97b947b8\" ON \"public\".\"Benchmark\" (\"kind\", \"device\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Benchmark_kind_device_idx_97b947b8\" exists on \"Benchmark\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Benchmark_kind_device_idx_97b947b8\"",
+          "i",
+          "I",
+          "\"public\".\"Benchmark\"",
+          "btree",
+          "[\"kind\",\"device\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Prediction.Prediction_createdAt_idx_9575dbd7",
+    "label": "Create index \"Prediction_createdAt_idx_9575dbd7\" on \"Prediction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Prediction_createdAt_idx_9575dbd7",
+        "table": "Prediction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Prediction_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Prediction_createdAt_idx_9575dbd7\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Prediction_createdAt_idx_9575dbd7\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Prediction_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"Prediction_createdAt_idx_9575dbd7\" ON \"public\".\"Prediction\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Prediction_createdAt_idx_9575dbd7\" exists on \"Prediction\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Prediction_createdAt_idx_9575dbd7\"",
+          "i",
+          "I",
+          "\"public\".\"Prediction\"",
+          "btree",
+          "[\"createdAt\"]"
+        ]
+      }
+    ]
+  }
+]
