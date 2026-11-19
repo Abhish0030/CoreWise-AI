@@ -1,0 +1,49 @@
+// use prisma-8
+
+// CoreWise-AI data contract: recorded benchmark runs of CPU/GPU workloads and
+// the predictions the recommendation agent makes from them.
+
+enum device {
+  @@type("pg/text@1")
+  cpu = "cpu"
+  gpu = "gpu"
+}
+
+enum workload_kind {
+  @@type("pg/text@1")
+  matmul = "matmul"
+  conv2d = "conv2d"
+  attention = "attention"
+  reduction = "reduction"
+  sort = "sort"
+}
+
+model Benchmark {
+  id         Int           @id @default(autoincrement())
+  workload   String
+  kind       workload_kind
+  device     device
+  matrixSize Int
+  threads    Int
+  durationMs Float
+  gflops     Float
+  efficiency Float
+  createdAt  DateTime      @default(now())
+
+  @@index([kind, device])
+}
+
+model Prediction {
+  id                  Int            @id @default(autoincrement())
+  workload            String
+  kind                workload_kind
+  matrixSize          Int
+  threads             Int
+  recommendedDevice   device
+  predictedDurationMs Float
+  confidence          Float
+  reasoning           String
+  createdAt           DateTime       @default(now())
+
+  @@index([createdAt])
+}
