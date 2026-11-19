@@ -1,0 +1,2 @@
+# Optional. CPU operation never imports/requires CUDA.
+cupy-cuda13x[ctk]==14.2.0
