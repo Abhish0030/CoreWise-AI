@@ -1,0 +1,450 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Provenance {
+  MEASURED
+  USER_ENTERED
+  SYNTHETIC_DEMO
+  PREDICTED
+  ANALYTICAL
+}
+
+model User {
+  id           String            @id @default(cuid())
+  email        String            @unique
+  name         String            @default("")
+  passwordHash String
+  createdAt    DateTime          @default(now())
+  sessions     Session[]
+  profiles     HardwareProfile[]
+  workloads Workload[]
+  comparisons ComparisonResult[]
+  datasets Dataset[]
+  trainingJobs TrainingJob[]
+  mlModels MLModel[]
+  mlPredictions MLPrediction[]
+  localAgents LocalAgent[]
+  agentPairings AgentPairing[]
+  benchmarkJobs BenchmarkJob[]
+  benchmarkRuns BenchmarkRun[]
+  explanations ModelExplanation[]
+  conversations AgentConversation[]
+  reports GeneratedReport[]
+  knowledgeDocuments KnowledgeDocument[]
+  defaultProfileId String?
+  defaultProfile HardwareProfile? @relation("DefaultProfile", fields: [defaultProfileId], references: [id], onDelete: SetNull)
+  selectedProfileId String?
+  selectedProfile HardwareProfile? @relation("SelectedProfile", fields: [selectedProfileId], references: [id], onDelete: SetNull)
+}
+
+model GeneratedReport {
+ id String @id @default(uuid())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ title String
+ type String
+ status String @default("READY")
+ configuration Json
+ sourceReferences Json
+ snapshot Json
+ sourceCount Int
+ exportMetadata Json
+ pdf Bytes
+ csv Bytes
+ createdAt DateTime @default(now())
+ @@unique([id,userId])
+ @@index([userId,createdAt])
+}
+
+model AgentConversation {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages AgentMessage[]
+  @@unique([id, userId])
+  @@index([userId, updatedAt])
+}
+
+model AgentMessage {
+  id String @id @default(cuid())
+  sequence Int @unique @default(autoincrement())
+  conversationId String
+  conversation AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role String
+  content String
+  status String @default("COMPLETED")
+  error String?
+  provider String?
+  model String?
+  usage Json?
+  references Json @default("[]")
+  context Json @default("{}")
+  grantHash String? @unique
+  csrfHash String?
+  sessionId String?
+  expiresAt DateTime?
+  toolCount Int @default(0)
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+  tools AgentToolCall[]
+  @@index([conversationId, createdAt])
+  @@index([status, expiresAt])
+}
+
+model AgentToolCall {
+  id String @id @default(cuid())
+  messageId String
+  message AgentMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  name String
+  arguments Json
+  result Json?
+  status String
+  durationMs Int
+  createdAt DateTime @default(now())
+  @@index([messageId, createdAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String?  @unique
+  data      String   @default("{}")
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([expiresAt])
+  @@index([userId])
+}
+
+model HardwareProfile {
+  detectionSnapshot Json?
+  id         String     @id @default(cuid())
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  manufacturer String @default("")
+  deviceModel String @default("")
+  description String @default("")
+  cpuManufacturer String @default("")
+  cpuName    String
+  physicalCores Int?
+  logicalProcessors Int?
+  cpuBaseGhz Float?
+  cpuMaxGhz Float?
+  gpuManufacturer String @default("")
+  gpuName    String?
+  vramGb Float?
+  memoryBandwidthGbps Float?
+  computeCapability String?
+  ramGb      Float
+  memoryType String @default("")
+  memoryFrequencyMhz Int?
+  os         String
+  provenance Provenance @default(USER_ENTERED)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  defaultFor User[] @relation("DefaultProfile")
+  selectedBy User[] @relation("SelectedProfile")
+  workloads Workload[]
+  comparisons ComparisonResult[]
+  @@index([userId, createdAt])
+  @@index([userId, name])
+  @@unique([id, userId])
+}
+
+model Workload {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hardwareProfileId String?
+  hardwareProfile HardwareProfile? @relation(fields: [hardwareProfileId], references: [id], onDelete: SetNull)
+  name String
+  category String
+  description String
+  inputSize Float
+  inputUnit String
+  operationCount Float
+  arithmeticIntensity Float
+  parallelFraction Float
+  memoryMiB Float
+  transferMiB Float
+  repetitions Int
+  presetId String?
+  assumptions Json
+  tolerance Float
+  provenance Provenance @default(USER_ENTERED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  comparisons ComparisonResult[]
+  @@index([userId, updatedAt])
+  @@index([hardwareProfileId])
+  @@unique([id, userId])
+}
+
+model ComparisonResult {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workloadId String?
+  workload Workload? @relation(fields: [workloadId], references: [id], onDelete: SetNull)
+  hardwareProfileId String?
+  hardwareProfile HardwareProfile? @relation(fields: [hardwareProfileId], references: [id], onDelete: SetNull)
+  kind String
+  workloadSnapshot Json
+  hardwareSnapshot Json
+  result Json
+  modelVersion String
+  provenance Provenance @default(ANALYTICAL)
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt])
+  @@index([workloadId])
+  @@index([hardwareProfileId])
+  @@unique([id, userId])
+}
+
+model Dataset {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name String
+  version String
+  schemaVersion String
+  provenance Provenance
+  rowCount Int
+  rows Json
+  validation Json
+  createdAt DateTime @default(now())
+  jobs TrainingJob[]
+  models MLModel[]
+  @@index([userId, createdAt])
+  @@unique([id, userId])
+}
+
+model TrainingJob {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  datasetId String
+  dataset Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  status String @default("QUEUED")
+  config Json
+  logs Json @default("[]")
+  error String?
+  leaseUntil DateTime?
+  startedAt DateTime?
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  models MLModel[]
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@unique([id, userId])
+}
+
+model MLModel {
+  publication SharedModelPublication?
+  id String @id
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  datasetId String
+  dataset Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  trainingJobId String
+  trainingJob TrainingJob @relation(fields: [trainingJobId], references: [id], onDelete: Cascade)
+  name String
+  algorithm String
+  target String
+  version String
+  schemaVersion String
+  provenance Provenance
+  status String @default("READY")
+  active Boolean @default(false)
+  selected Boolean
+  sha256 String
+  artifactLocation String
+  featureSchema Json
+  evaluation Json
+  trainingConfig Json
+  createdAt DateTime @default(now())
+  @@index([userId, target, active])
+  @@index([datasetId])
+  @@unique([id, userId])
+}
+
+// Publication is an explicit administrator decision; model ownership stays private.
+model SharedModelPublication {
+  modelId String @id
+  model MLModel @relation(fields: [modelId], references: [id], onDelete: Restrict)
+  approvedArtifactSha256 String
+  approvedBy String
+  approvedAt DateTime @default(now())
+  hardwareCompatibility Json
+  limitations String
+  revokedAt DateTime?
+}
+
+// Append-only application audit. Snapshot identifiers deliberately have no cascading
+// relations so removing a model or account cannot erase publication history.
+model SharedModelPublicationEvent {
+  id String @id @default(cuid())
+  modelId String
+  actorUserId String
+  action String
+  artifactSha256 String
+  compatibilitySnapshot Json
+  limitations String
+  reason String
+  createdAt DateTime @default(now())
+  @@index([modelId, createdAt])
+  @@index([actorUserId, createdAt])
+}
+
+model MLPrediction {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workloadId String?
+  hardwareProfileId String?
+  workloadSnapshot Json
+  hardwareSnapshot Json
+  features Json
+  result Json
+  provenance Provenance @default(PREDICTED)
+  createdAt DateTime @default(now())
+  explanations ModelExplanation[]
+  @@index([userId, createdAt])
+  @@unique([id, userId])
+}
+
+model AgentPairing {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  codeHash String @unique
+  expiresAt DateTime
+  usedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([expiresAt])
+}
+
+model LocalAgent {
+  latestTelemetry Json?
+  telemetryReceivedAt DateTime?
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  name String
+  tokenHash String @unique
+  environment Json
+  expiresAt DateTime
+  revokedAt DateTime?
+  lastSeenAt DateTime?
+  createdAt DateTime @default(now())
+  jobs BenchmarkJob[]
+  runs BenchmarkRun[]
+  @@index([userId,createdAt])
+  @@unique([id,userId])
+}
+
+model BenchmarkJob {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  agentId String
+  agent LocalAgent @relation(fields:[agentId],references:[id],onDelete:Cascade)
+  config Json
+  status String @default("QUEUED")
+  error String?
+  leaseUntil DateTime?
+  startedAt DateTime?
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  run BenchmarkRun?
+  @@index([agentId,status,createdAt])
+  @@index([userId,createdAt])
+  @@unique([id,userId])
+}
+
+model BenchmarkRun {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  agentId String
+  agent LocalAgent @relation(fields:[agentId],references:[id],onDelete:Cascade)
+  jobId String @unique
+  job BenchmarkJob @relation(fields:[jobId],references:[id],onDelete:Cascade)
+  measurement Json
+  valid Boolean
+  provenance Provenance @default(MEASURED)
+  createdAt DateTime @default(now())
+  @@index([userId,createdAt])
+  @@unique([id,userId])
+}
+
+model ModelExplanation {
+  id String @id
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  kind String
+  predictionId String?
+  prediction MLPrediction? @relation(fields:[predictionId],references:[id],onDelete:SetNull)
+  modelId String?
+  cacheKey String
+  options Json
+  status String @default("QUEUED")
+  result Json?
+  error String?
+  attempts Int @default(1)
+  leaseUntil DateTime?
+  startedAt DateTime?
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([userId,createdAt])
+  @@index([predictionId])
+  @@index([modelId])
+  @@index([status,createdAt])
+  @@unique([userId,cacheKey])
+  @@unique([id,userId])
+}
+
+
+model KnowledgeDocument {
+  id String @id @default(cuid())
+  ownerId String?
+  owner User? @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  visibility String @default("PRIVATE")
+  sourceType String
+  sourceId String
+  title String
+  text String
+  contentHash String
+  provenance String
+  embeddingModel String
+  embeddingRevision String
+  embeddingDimension Int @default(384)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  chunks KnowledgeChunk[]
+  @@index([ownerId, visibility])
+  @@index([sourceType, sourceId])
+  @@index([contentHash])
+}
+
+model KnowledgeChunk {
+  id String @id @default(cuid())
+  documentId String
+  document KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chunkIndex Int
+  text String
+  contentHash String
+  embedding Unsupported("vector(384)")
+  @@unique([documentId, chunkIndex])
+  @@index([contentHash])
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@corewise/types",
+  "version": "0.8.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  }
+}

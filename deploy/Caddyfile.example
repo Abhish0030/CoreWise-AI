@@ -1,0 +1,9 @@
+# Reference only: replace the hostname and configure DNS/certificates before use.
+# All application services stay on loopback; only this proxy accepts public traffic.
+corewise.example.com {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:3000 {
+        header_up X-Forwarded-Proto https
+        flush_interval -1
+    }
+}

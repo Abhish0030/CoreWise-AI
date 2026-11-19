@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: corewise-postgres:17.7-vector0.8.7-alpine
+    build:
+      context: ./deploy/postgres
+    environment:
+      POSTGRES_DB: corewise
+      POSTGRES_USER: corewise
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-corewise_local}
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-55432}:5432'
+    volumes:
+      - corewise_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U corewise -d corewise']
+      interval: 5s
+      timeout: 3s
+      retries: 15
+volumes:
+  corewise_postgres:

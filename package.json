@@ -1,0 +1,56 @@
+{
+  "name": "corewise-ai",
+  "version": "0.8.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=22.19.0",
+    "pnpm": ">=11.7.0"
+  },
+  "scripts": {
+    "agent": "node scripts/run-agent.mjs",
+    "dev:telemetry": "node scripts/run-agent.mjs monitor --samples 120 --interval 2",
+    "telemetry:continuous": "node scripts/run-agent.mjs monitor --continuous --interval 2",
+    "env:setup": "node scripts/setup-env.mjs",
+    "postinstall": "pnpm db:generate && pnpm --filter @corewise/types build",
+    "dev": "concurrently -k -n api,web,ml -c magenta,cyan,yellow \"pnpm dev:api\" \"pnpm --filter @corewise/web dev\" \"pnpm dev:ml\"",
+    "ml:serve": "node scripts/run-ml.mjs serve",
+    "ml:worker": "node scripts/run-ml.mjs worker",
+    "dev:ml": "concurrently -k -n ml,worker \"pnpm ml:serve\" \"pnpm ml:worker\"",
+    "dev:neon": "node scripts/with-database.mjs neon-development",
+    "dev:api": "tsx watch backend/src/index.ts",
+    "typecheck": "pnpm --filter @corewise/api typecheck && pnpm --filter @corewise/web typecheck",
+    "lint": "eslint frontend backend/src backend/tests packages tests playwright.config.ts playwright.hydration.config.ts prisma.config.ts",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:hydration": "playwright test --config playwright.hydration.config.ts",
+    "build": "pnpm --filter @corewise/types build && pnpm --filter @corewise/api build && pnpm --filter @corewise/web build",
+    "db:generate": "prisma generate",
+    "db:migrate": "node scripts/database.mjs --environment local migrate",
+    "db:check": "tsx --env-file-if-exists=.env scripts/check-db.ts",
+    "format": "prettier --write frontend backend/src backend/tests backend/prisma packages tests scripts *.json *.ts *.mjs *.yml *.yaml README.md AGENTS.md obsidian/STATUS.md obsidian/architecture.md obsidian/adr/*.md",
+    "production:check": "node scripts/check-production.mjs"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "dotenv": "18.0.10"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@corewise/types": "workspace:*",
+    "@playwright/test": "1.65.0",
+    "@types/node": "22.20.5",
+    "@types/supertest": "7.2.1",
+    "concurrently": "10.0.7",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.6",
+    "playwright-core": "1.65.0",
+    "prettier": "3.10.0",
+    "prisma": "6.19.3",
+    "supertest": "7.3.2",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "extends": "../packages/config/tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "rootDir": "..",
+    "allowJs": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "../packages/types/src/**/*.ts",
+    "../scripts/db-environment.mjs",
+    "../scripts/runtime-environment.mjs"
+  ]
+}

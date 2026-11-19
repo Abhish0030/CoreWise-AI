@@ -9,13 +9,13 @@ Desktop.ini
 *~
 
 # Per-user Obsidian state; shared app/appearance/core-plugin/graph settings stay tracked
-.obsidian/workspace*.json
-.obsidian/cache/
-.obsidian/plugins/*/data.json
-.obsidian/plugins/obsidian-git/main.js
-.obsidian/plugins/obsidian-git/manifest.json
-.obsidian/plugins/obsidian-git/styles.css
-.trash/
+obsidian/.obsidian/workspace*.json
+obsidian/.obsidian/cache/
+obsidian/.obsidian/plugins/*/data.json
+obsidian/.obsidian/plugins/obsidian-git/main.js
+obsidian/.obsidian/plugins/obsidian-git/manifest.json
+obsidian/.obsidian/plugins/obsidian-git/styles.css
+obsidian/.trash/
 
 # Credentials and environment secrets (safe templates may be tracked)
 .env
@@ -39,3 +39,53 @@ node_modules/
 venv/
 __pycache__/
 *.pyc
+.pytest_cache/
+.ruff_cache/
+backend/ml/artifacts/
+
+# Application build/test outputs
+.next/
+dist/
+*.tsbuildinfo
+playwright-report/
+.artifacts/test-results/
+.artifacts/evidence/
+.artifacts/backups/
+.artifacts/review/
+coverage/
+
+# Local measurements contain device metadata
+backend/local-agent/results/
+.cupy/
+# Tool debug logs, not arbitrary user log/measurement files
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+backend/ml/embedding-cache/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies and build output
+node_modules/
+.next/
+dist/
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+
+# Private ML artifacts and generated data
+backend/ml/artifacts/
+backend/ml/embedding-cache/
+backend/local-agent/results/
+.artifacts/
+
+# Local Obsidian settings and plugins
+**/.obsidian/
